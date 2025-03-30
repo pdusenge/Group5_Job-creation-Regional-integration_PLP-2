@@ -217,3 +217,104 @@ def register_business(name, description, contact_email=None):
         name (str): Business name
         description (str): Business description
         contact_email (str, optional): Contact email. Defaults to None.
+        
+    Returns:
+        tuple: (bool, Business|str) - Success status and Business object or error message
+    """
+    current_user = get_current_user()
+    if not current_user or current_user.role != UserRole.MERCHANT:
+        return False, "Only merchants can register businesses."
+        
+    session = get_session()
+    try:
+        # Check if user already has a business
+        existing_business = session.query(Business).filter(
+            Business.owner_id == current_user.id
+        ).first()
+        
+        if existing_business:
+            return False, "You already have a registered business."
+        
+        # Create new business
+        new_business = Business(
+            owner_id=current_user.id,
+            name=name,
+            description=description,
+            contact_email=contact_email or current_user.email
+        )
+        
+        session.add(new_business)
+        session.commit()
+        
+        # Create a copy to return
+        business_copy = Business(
+            id=new_business.id,
+            owner_id=new_business.owner_id,
+            name=new_business.name,
+            description=new_business.description,
+            contact_email=new_business.contact_email
+        )
+            
+        return True, business_copy
+        
+    except IntegrityError:
+        session.rollback()
+        return False, "Database error. Please try again."
+    except Exception as e:
+        session.rollback()
+        return False, f"Error: {str(e)}"
+    finally:
+        session.close()
+
+
+def has_business(user_id):
+    """
+    Check if a user has a registered business.
+    
+    Args:
+        user_id (int): User ID to check
+        
+    Returns:
+        bool: True if user has a business, False otherwise
+    """
+    session = get_session()
+    try:
+        business = session.query(Business).filter(
+            Business.owner_id == user_id
+        ).first()
+        return business is not None
+    finally:
+        session.close()
+
+
+def get_business(user_id):
+    """
+    Get business information for a user.
+    
+    Args:
+        user_id (int): User ID to get business for
+        
+    Returns:
+        Business: Business object if found, None otherwise
+    """
+    session = get_session()
+    try:
+        business = session.query(Business).filter(
+            Business.owner_id == user_id
+        ).first()
+        
+        if not business:
+            return None
+            
+        # Create a copy to return after session close
+        business_copy = Business(
+            id=business.id,
+            owner_id=business.owner_id,
+            name=business.name,
+            description=business.description,
+            contact_email=business.contact_email
+        )
+        return business_copy
+    finally:
+        session.close()
+        
