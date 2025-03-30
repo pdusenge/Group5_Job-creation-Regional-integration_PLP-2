@@ -58,3 +58,39 @@ def get_user_info(user_id):
     finally:
         session.close()
 
+
+def get_business_info(business_id):
+    """
+    Get information about a business.
+    
+    Args:
+        business_id (int): Business ID to lookup
+        
+    Returns:
+        Business: Business object if found, None otherwise
+    """
+    if not business_id:
+        return None
+        
+    session = get_session()
+    try:
+        business = session.query(Business).filter(Business.id == business_id).first()
+        
+        if not business:
+            return None
+            
+        # Create a copy to use after session closes
+        business_copy = Business(
+            id=business.id,
+            owner_id=business.owner_id,
+            name=business.name,
+            description=business.description,
+            contact_email=business.contact_email
+        )
+        
+        return business_copy
+    except Exception as e:
+        print(f"Error retrieving business info: {e}")
+        return None
+    finally:
+        session.close()
