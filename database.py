@@ -72,5 +72,63 @@ class Business(Base):
     # Relationships
     owner = relationship("User", back_populates="business")
     products = relationship("Product", back_populates="business", cascade="all, delete-orphan")
+class Product(Base):
+    """Product model for items listed by businesses."""
+    _tablename_ = "products"
 
+    id = Column(Integer, primary_key=True)
+    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
+    name = Column(String(100), nullable=False)
+    description = Column(Text)
+    price = Column(Float, nullable=False)
+    stock_quantity = Column(Integer, default=0)
+    category = Column(String(50))
+    is_active = Column(Boolean, default=True)
+    
+    # Relationships
+    business = relationship("Business", back_populates="products")
+    cart_items = relationship("CartItem", back_populates="product")
+    order_items = relationship("OrderItem", back_populates="product")
+
+class CartItem(Base):
+    """Cart item model for shopping cart functionality."""
+    _tablename_ = "cart_items"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    quantity = Column(Integer, default=1)
+    
+    # Relationships
+    user = relationship("User", back_populates="cart_items")
+    product = relationship("Product", back_populates="cart_items")
+
+class Order(Base):
+    """Order model for tracking customer orders."""
+    _tablename_ = "orders"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    total_amount = Column(Float, nullable=False)
+    status = Column(Enum(OrderStatus), default=OrderStatus.PENDING)
+    shipping_address = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", back_populates="orders")
+    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+
+class OrderItem(Base):
+    """Order item model for tracking items within an order."""
+    _tablename_ = "order_items"
+
+    id = Column(Integer, primary_key=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    price_at_time = Column(Float, nullable=False)  # Price when ordered
+    
+    # Relationships
+    order = relationship("Order", back_populates="items")
+    product = relationship("Product", back_populates="order_items")
 
