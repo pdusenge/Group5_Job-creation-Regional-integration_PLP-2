@@ -160,3 +160,73 @@ def get_product_details(product_id):
         return None
     finally:
         session.close()
+
+def get_categories():
+    """
+    Get a list of all product categories.
+    
+    Returns:
+        list: List of category strings
+    """
+    session = get_session()
+    try:
+        categories = session.query(Product.category).distinct().all()
+        return [c[0] for c in categories if c[0]]  # Filter out None values
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return []
+    finally:
+        session.close()
+
+@merchant_required
+def list_merchant_products(business_id):
+    """
+    List all products for a merchant's business.
+    
+    Args:
+        business_id (int): The business ID to list products for
+        
+    Returns:
+        list: List of Product objects
+    """
+    current_user = get_current_user()
+    if not current_user:
+        print("User session not found. Please log in again.")
+        return []
+        
+    session = get_session()
+    try:
+        # Verify business ownership
+        business = session.query(Business).filter(
+            Business.id == business_id,
+            Business.owner_id == current_user.id
+        ).first()
+        
+        if not business:
+            print("Business not found or you don't have permission.")
+            return []
+            
+        # Get products
+        products = session.query(Product).filter(
+            Product.business_id == business_id
+        ).all()
+        
+        if products:
+            headers = ["ID", "Name", "Price", "Stock", "Category", "Active"]
+            data = [
+                [p.id, p.name, f"${p.price:.2f}", p.stock_quantity, p.category, "Yes" if p.is_active else "No"]
+                for p in products
+            ]
+            print("\nYour Products:")
+            print(tabulate(data, headers=headers, tablefmt="pretty"))
+        else:
+            print("\nYou don't have any products listed yet.")
+            
+        return products
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return []
+    finally:
+        session.close()
