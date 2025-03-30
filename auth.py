@@ -128,3 +128,48 @@ def login(username_or_email, password):
                 role=user.role,
                 created_at=user.created_at
             )
+# Set the current user in the session
+            set_current_user(user_copy)
+            
+            return True, user_copy
+        else:
+            return False, "Incorrect password."
+            
+    except Exception as e:
+        return False, f"Error: {str(e)}"
+    finally:
+        session.close()
+
+
+def get_user_by_id(user_id):
+    """
+    Get user by ID.
+    
+    Args:
+        user_id (int): User ID to search for
+        
+    Returns:
+        User: User object if found, None otherwise
+    """
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            return None
+            
+        # Create a copy to return after session close
+        user_copy = User(
+            id=user.id,
+            username=user.username,
+            email=user.email,
+            password_hash=user.password_hash,
+            role=user.role,
+            created_at=user.created_at
+        )
+        return user_copy
+    finally:
+        session.close()
+
+
+def login_required(func):
+    """
