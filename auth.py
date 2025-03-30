@@ -173,3 +173,47 @@ def get_user_by_id(user_id):
 
 def login_required(func):
     """
+    Decorator to check if user is logged in.
+    
+    Args:
+        func: The function to be decorated
+        
+    Returns:
+        function: The decorated function
+    """
+    def wrapper(*args, **kwargs):
+        current_user = get_current_user()
+        if current_user is None or not hasattr(current_user, 'id'):
+            print("\nYou must be logged in to access this feature.")
+            return None
+        return func(*args, **kwargs)
+    return wrapper
+
+
+def merchant_required(func):
+    """
+    Decorator to check if user is a merchant.
+    
+    Args:
+        func: The function to be decorated
+        
+    Returns:
+        function: The decorated function
+    """
+    def wrapper(*args, **kwargs):
+        current_user = get_current_user()
+        if current_user is None or not hasattr(current_user, 'role') or current_user.role != UserRole.MERCHANT:
+            print("\nThis feature is only available to merchants.")
+            return None
+        return func(*args, **kwargs)
+    return wrapper
+
+
+def register_business(name, description, contact_email=None):
+    """
+    Register a new business for the current merchant user.
+    
+    Args:
+        name (str): Business name
+        description (str): Business description
+        contact_email (str, optional): Contact email. Defaults to None.
