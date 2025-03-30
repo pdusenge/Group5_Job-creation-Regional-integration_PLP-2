@@ -230,3 +230,133 @@ def list_merchant_products(business_id):
         return []
     finally:
         session.close()
+
+
+
+def add_product(business_id, name, description, price, stock_quantity, category):
+    """
+    Add a new product to the business.
+    
+    Args:
+        business_id (int): Business ID
+        name (str): Product name
+        description (str): Product description
+        price (float): Product price
+        stock_quantity (int): Available stock quantity
+        category (str): Product category
+        
+    Returns:
+        tuple: (bool, Product|str) - Success status and Product object or error message
+    """
+    if not business_id:
+        return False, "Missing business ID."
+    
+    current_user = get_current_user()
+    if not current_user:
+        return False, "User session not found. Please log in again."
+        
+    session = get_session()
+    try:
+        # Validate business ownership
+        business = session.query(Business).filter(
+            Business.id == business_id,
+            Business.owner_id == current_user.id
+        ).first()
+        
+        if not business:
+            return False, "Business not found or you don't have permission."
+            
+        # Create product
+        new_product = Product(
+            business_id=business_id,
+            name=name,
+            description=description,
+            price=float(price),
+            stock_quantity=int(stock_quantity),
+            category=category
+        )
+        
+        session.add(new_product)
+        session.commit()
+        
+        # Create a safe copy to return (without accessing attributes from the SQLAlchemy object)
+        return True, f"Product '{name}' added successfully."
+        
+    except ValueError:
+        session.rollback()
+        return False, "Invalid price or stock quantity."
+    except Exception as e:
+        session.rollback()
+        return False, f"Error: {str(e)}"
+    finally:
+        session.close()
+
+
+@merchant_required
+def update_product(product_id, name=None, description=None, price=None, 
+                  stock_quantity=None, category=None, is_active=None):
+    """
+    Update product information.
+    
+    Args:
+        product_id (int): ID of the product to update
+        name (str, optional): New product name. Defaults to None.
+        description (str, optional): New description. Defaults to None.
+        price (float, optional): New price. Defaults to None.
+        stock_quantity (int, optional): New stock quantity. Defaults to None.
+        category (str, optional): New category. Defaults to None.
+        is_active (bool, optional): Product availability. Defaults to None.
+        
+    Returns:
+        tuple: (bool, Product|str) - Success status and Product object or error message
+    """
+    session = get_session()
+    current_user = get_current_user()
+    try:
+        # Find the product and verify ownership
+        product = session.query(Product).join(Business).filter(
+            Product.id == product_id,
+            Business.owner_id == current_user.id
+        ).first()
+        
+        if not product:
+            return False, "Product not found or doesn't belong to your business."
+            
+        # Update fields
+        if name:
+            product.name = name
+        if description:
+            product.description = description
+        if price is not None:
+            product.price = float(price)
+        if stock_quantity is not None:
+            product.stock_quantity = int(stock_quantity)
+        if category:
+            product.category = category
+        if is_active is not None:
+            product.is_active = bool(is_active)
+            
+        session.commit()
+        
+        # Create a copy to return
+        product_copy = Product(
+            id=product.id,
+            business_id=product.business_id,
+            name=product.name,
+            description=product.description,
+            price=product.price,
+            stock_quantity=product.stock_quantity,
+            category=product.category,
+            is_active=product.is_active
+        )
+        
+        return True, product_copy
+        
+    except ValueError:
+        session.rollback()
+        return False, "Invalid price or stock quantity."
+    except Exception as e:
+        session.rollback()
+        return False, f"Error: {str(e)}"
+    finally:
+        session.close()
