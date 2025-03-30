@@ -43,3 +43,41 @@ def register_user(username, email, password, role=UserRole.CUSTOMER):
     """
     session = get_session()
     try:
+# Check if username or email already exists
+        existing_user = session.query(User).filter(
+            (User.username == username) | (User.email == email)
+        ).first()
+        
+        if existing_user:
+            if existing_user.username == username:
+                return False, "Username already taken."
+            else:
+                return False, "Email already registered."
+        
+        # Hash the password
+        password_hash = bcrypt.hashpw(
+            password.encode('utf-8'), 
+            bcrypt.gensalt(rounds=PASSWORD_SALT_ROUNDS)
+        ).decode('utf-8')
+        
+        # Create new user
+        new_user = User(
+            username=username,
+            email=email,
+            password_hash=password_hash,
+            role=role
+        )
+        
+        session.add(new_user)
+        session.commit()
+        
+        # Create a fresh copy to return after session close
+        user_copy = User(
+            id=new_user.id,
+            username=new_user.username,
+            email=new_user.email,
+            password_hash=new_user.password_hash,
+            role=new_user.role,
+            created_at=new_user.created_at
+        )
+        
