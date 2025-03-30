@@ -9,7 +9,7 @@ from config import PASSWORD_SALT_ROUNDS
 from database import get_session, User, UserRole, Business
 
 class UserSession:
-    def _init_(self):
+    def __init__(self):
         self.current_user = None
 
 # Create a singleton instance
@@ -43,7 +43,7 @@ def register_user(username, email, password, role=UserRole.CUSTOMER):
     """
     session = get_session()
     try:
-# Check if username or email already exists
+        # Check if username or email already exists
         existing_user = session.query(User).filter(
             (User.username == username) | (User.email == email)
         ).first()
@@ -128,7 +128,8 @@ def login(username_or_email, password):
                 role=user.role,
                 created_at=user.created_at
             )
-# Set the current user in the session
+            
+            # Set the current user in the session
             set_current_user(user_copy)
             
             return True, user_copy
@@ -317,4 +318,3 @@ def get_business(user_id):
         return business_copy
     finally:
         session.close()
-        
