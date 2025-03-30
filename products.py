@@ -103,3 +103,60 @@ def search_products(query, category=None):
         return []
     finally:
         session.close()
+
+def get_product_details(product_id):
+    """
+    Get detailed information about a product.
+    
+    Args:
+        product_id (int): ID of the product to view
+        
+    Returns:
+        Product: Product object if found, None otherwise
+    """
+    session = get_session()
+    try:
+        product = session.query(Product).filter(
+            Product.id == product_id,
+            Product.is_active == True
+        ).first()
+        
+        if product:
+            # Get business information
+            business = session.query(Business).filter(
+                Business.id == product.business_id
+            ).first()
+            
+            print(f"\nProduct Details: {product.name}")
+            print(f"Price: ${product.price:.2f}")
+            print(f"Category: {product.category}")
+            print(f"Business: {business.name}")
+            print(f"Description: {product.description}")
+            
+            if product.stock_quantity > 0:
+                print(f"In Stock: {product.stock_quantity} available")
+            else:
+                print("Out of Stock")
+                
+            # Create a copy to return
+            product_copy = Product(
+                id=product.id,
+                business_id=product.business_id,
+                name=product.name,
+                description=product.description,
+                price=product.price,
+                stock_quantity=product.stock_quantity,
+                category=product.category,
+                is_active=product.is_active
+            )
+            
+            return product_copy
+        else:
+            print("\nProduct not found.")
+            return None
+            
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return None
+    finally:
+        session.close()
