@@ -81,3 +81,50 @@ def register_user(username, email, password, role=UserRole.CUSTOMER):
             created_at=new_user.created_at
         )
         
+        # Set as current user
+        set_current_user(user_copy)
+        
+        return True, user_copy
+        
+    except IntegrityError:
+        session.rollback()
+        return False, "Database error. Please try again."
+    except Exception as e:
+        session.rollback()
+        return False, f"Error: {str(e)}"
+    finally:
+        session.close()
+
+
+def login(username_or_email, password):
+    """
+    Log in a user.
+    
+    Args:
+        username_or_email (str): Username or email for login
+        password (str): User's password
+        
+    Returns:
+        tuple: (bool, User|str) - Success status and User object or error message
+    """
+    session = get_session()
+    try:
+        # Find user by username or email
+        user = session.query(User).filter(
+            (User.username == username_or_email) | (User.email == username_or_email)
+        ).first()
+        
+        if not user:
+            return False, "User not found."
+        
+        # Verify password
+        if bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
+            # Create a complete copy with all necessary attributes
+            user_copy = User(
+                id=user.id,
+                username=user.username,
+                email=user.email,
+                password_hash=user.password_hash,
+                role=user.role,
+                created_at=user.created_at
+            )
