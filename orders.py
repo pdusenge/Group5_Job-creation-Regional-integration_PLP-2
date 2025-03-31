@@ -694,7 +694,7 @@ def view_merchant_orders(business_id):
         
     session = get_session()
     try:
-        # Verify business ownership
+        # Verify business ownershipp
         business = session.query(Business).filter(
             Business.id == business_id,
             Business.owner_id == current_user.id
