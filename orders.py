@@ -685,7 +685,7 @@ def view_merchant_orders(business_id):
         business_id (int): Business ID to view orders for
         
     Returns:
-        list: List of Order objects
+        list: List of Order Objects
     """
     current_user = get_current_user()
     if not current_user:
