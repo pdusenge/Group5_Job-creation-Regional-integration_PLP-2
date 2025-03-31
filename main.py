@@ -781,7 +781,7 @@ def main_menu():
         choice = show_menu("Main Menu", options)
         
         if choice == -1:  # Exit application
-            print("\nThank you for using the Regional E-commerce Platform!")
+            print("\nThank you for using the Regional E-commerce Platform !")
             break
             
         if current_user:
