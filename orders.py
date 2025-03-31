@@ -701,7 +701,7 @@ def view_merchant_orders(business_id):
         ).first()
         
         if not business:
-            print("\nBusiness not found or you don't have permission.")
+            print("\nBusiness not found or you don't have Permission.")
             return []
             
         # Get all products from the business
