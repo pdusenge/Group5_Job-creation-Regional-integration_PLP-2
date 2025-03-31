@@ -359,4 +359,4 @@ def update_product(product_id, name=None, description=None, price=None,
         session.rollback()
         return False, f"Error: {str(e)}"
     finally:
-        session.close()
+        session.close()
