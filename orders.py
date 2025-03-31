@@ -710,7 +710,7 @@ def view_merchant_orders(business_id):
         ).all()]
         
         if not product_ids:
-            print("\nYou don't have any products listed.")
+            print("\nYou don't have any Products listed.")
             return []
             
         # Find orders containing those products
