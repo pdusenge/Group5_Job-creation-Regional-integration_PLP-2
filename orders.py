@@ -685,7 +685,7 @@ def view_merchant_orders(business_id):
         business_id (int): Business ID to view orders for
         
     Returns:
-        list: List of Order objects
+        list: List of Order Objects
     """
     current_user = get_current_user()
     if not current_user:
@@ -694,14 +694,14 @@ def view_merchant_orders(business_id):
         
     session = get_session()
     try:
-        # Verify business ownership
+        # Verify business ownershipp
         business = session.query(Business).filter(
             Business.id == business_id,
             Business.owner_id == current_user.id
         ).first()
         
         if not business:
-            print("\nBusiness not found or you don't have permission.")
+            print("\nBusiness not found or you don't have Permission.")
             return []
             
         # Get all products from the business
