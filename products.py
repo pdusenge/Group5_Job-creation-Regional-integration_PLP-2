@@ -6,8 +6,6 @@ from tabulate import tabulate
 from database import get_session, Product, Business
 from auth import get_current_user, merchant_required
 
-@merchant_required
-
 def list_products():
     """
     List all active products.
