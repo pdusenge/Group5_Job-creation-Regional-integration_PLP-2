@@ -162,4 +162,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [@stevenalu](https://github.com/stevenalu)
 - [@Ester446](https://github.com/Esther446)
 - [@NMordecai](https://github.com/NMordecai)
+- [@IgihozoColombe](https://github.com/IgihozoColombe)
 ---
